@@ -51,10 +51,20 @@
         border-radius: 12px;
         cursor: pointer;
         transition: background-color 0.2s;
+        border: none;
+        outline: none;
       }
 
       .toggle.enabled {
         background: #1da1f2;
+      }
+
+      .toggle:hover {
+        opacity: 0.8;
+      }
+
+      .toggle:active {
+        transform: scale(0.95);
       }
 
       .toggle::after {
@@ -66,7 +76,8 @@
         height: 20px;
         background: white;
         border-radius: 50%;
-        transition: transform 0.2s;
+        transition: transform 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
       .toggle.enabled::after {
@@ -105,36 +116,7 @@
       const toggle = document.getElementById("toggle");
       const status = document.getElementById("status");
 
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(
-          tabs[0].id,
-          { action: "getState" },
-          (response) => {
-            if (response) {
-              updateUI(response.enabled);
-            } else {
-              chrome.storage.sync.get(["goodOldTwitterEnabled"], (result) => {
-                updateUI(result.goodOldTwitterEnabled !== false);
-              });
-            }
-          }
-        );
-      });
-
-      toggle.addEventListener("click", () => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          chrome.tabs.sendMessage(
-            tabs[0].id,
-            { action: "toggle" },
-            (response) => {
-              if (response) {
-                updateUI(response.enabled);
-              }
-            }
-          );
-        });
-      });
-
+      // Función para actualizar la UI
       function updateUI(enabled) {
         if (enabled) {
           toggle.classList.add("enabled");
@@ -146,6 +128,101 @@
           status.className = "status disabled";
         }
       }
+
+      // Función para obtener el estado inicial
+      async function getInitialState() {
+        try {
+          // Primero intentar obtener el estado del storage
+          const result = await chrome.storage.sync.get([
+            "goodOldTwitterEnabled",
+          ]);
+          const enabled = result.goodOldTwitterEnabled !== false;
+
+          // Verificar si estamos en Twitter/X
+          const tabs = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          const currentTab = tabs[0];
+
+          if (
+            !currentTab.url.includes("twitter.com") &&
+            !currentTab.url.includes("x.com")
+          ) {
+            status.textContent = "Not on Twitter/X";
+            status.className = "status disabled";
+            toggle.style.opacity = "0.5";
+            toggle.style.pointerEvents = "none";
+            return;
+          }
+
+          // Intentar comunicarse con el content script
+          try {
+            const response = await chrome.tabs.sendMessage(currentTab.id, {
+              action: "getState",
+            });
+            if (response && response.enabled !== undefined) {
+              updateUI(response.enabled);
+            } else {
+              updateUI(enabled);
+            }
+          } catch (error) {
+            // Si no hay content script, usar el valor del storage
+            updateUI(enabled);
+          }
+        } catch (error) {
+          console.error("Error getting initial state:", error);
+          status.textContent = "Error loading state";
+          status.className = "status disabled";
+        }
+      }
+
+      // Función para manejar el toggle
+      async function handleToggle() {
+        try {
+          const tabs = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          const currentTab = tabs[0];
+
+          // Obtener el estado actual
+          const result = await chrome.storage.sync.get([
+            "goodOldTwitterEnabled",
+          ]);
+          const currentState = result.goodOldTwitterEnabled !== false;
+          const newState = !currentState;
+
+          // Guardar el nuevo estado
+          await chrome.storage.sync.set({ goodOldTwitterEnabled: newState });
+
+          // Intentar comunicarse con el content script
+          try {
+            const response = await chrome.tabs.sendMessage(currentTab.id, {
+              action: "toggle",
+            });
+            if (response && response.enabled !== undefined) {
+              updateUI(response.enabled);
+            } else {
+              updateUI(newState);
+            }
+          } catch (error) {
+            // Si no hay content script, actualizar UI y recargar la página
+            updateUI(newState);
+            await chrome.tabs.reload(currentTab.id);
+          }
+        } catch (error) {
+          console.error("Error toggling state:", error);
+          status.textContent = "Error toggling";
+          status.className = "status disabled";
+        }
+      }
+
+      // Event listeners
+      toggle.addEventListener("click", handleToggle);
+
+      // Inicializar el estado
+      getInitialState();
     </script>
   </body>
 </html>

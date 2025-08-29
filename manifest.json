@@ -3,7 +3,7 @@
   "name": "Good Old Twitter",
   "version": "1.0",
   "description": "Hide images and videos on Twitter/X to show only text content",
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "storage"],
   "content_scripts": [
     {
       "matches": ["*://twitter.com/*", "*://x.com/*"],

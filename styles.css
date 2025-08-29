@@ -7,14 +7,83 @@
   }
 }
 
+/* Hide all media elements completely - no space taken */
+.good-old-twitter-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+}
+
+/* Specific overrides for different media types */
 .good-old-twitter-hidden video,
 .good-old-twitter-hidden [data-testid="videoPlayer"] {
   display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
+/* Hide tweet photos completely */
 .good-old-twitter-hidden[data-testid="tweetPhoto"] {
+  display: none !important;
   height: 0 !important;
+  width: 0 !important;
   overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Hide media containers completely */
+.good-old-twitter-hidden[data-testid="card.layoutLarge.media"],
+.good-old-twitter-hidden[data-testid="card.layoutSmall.media"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Hide GIF containers completely */
+.good-old-twitter-hidden[data-testid="gif"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Hide all images that might still take space */
+.good-old-twitter-hidden img {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Hide media placeholders and containers */
+.good-old-twitter-hidden [data-testid*="media"],
+.good-old-twitter-hidden [data-testid*="photo"],
+.good-old-twitter-hidden [data-testid*="video"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Force remove any remaining space from media elements */
+.good-old-twitter-hidden * {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
