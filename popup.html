@@ -100,129 +100,15 @@
     </style>
   </head>
   <body>
-    <div class="header">
-      <div class="title">Good Old Twitter</div>
-      <div class="subtitle">Hide images & videos</div>
-    </div>
+    <h1>Good Old Twitter</h1>
 
-    <div class="toggle-container">
-      <span class="toggle-label">Hide Media</span>
-      <div class="toggle" id="toggle"></div>
-    </div>
+    <label>
+      <input type="checkbox" id="toggleMedia"> Hide images & videos
+    </label>
 
-    <div class="status" id="status">Loading...</div>
+    <p class="loading">Loading...</div>
+    <p class="error"></p>
 
-    <script>
-      const toggle = document.getElementById("toggle");
-      const status = document.getElementById("status");
-
-      // Función para actualizar la UI
-      function updateUI(enabled) {
-        if (enabled) {
-          toggle.classList.add("enabled");
-          status.textContent = "Media hidden";
-          status.className = "status enabled";
-        } else {
-          toggle.classList.remove("enabled");
-          status.textContent = "Media visible";
-          status.className = "status disabled";
-        }
-      }
-
-      // Función para obtener el estado inicial
-      async function getInitialState() {
-        try {
-          // Primero intentar obtener el estado del storage
-          const result = await chrome.storage.sync.get([
-            "goodOldTwitterEnabled",
-          ]);
-          const enabled = result.goodOldTwitterEnabled !== false;
-
-          // Verificar si estamos en Twitter/X
-          const tabs = await chrome.tabs.query({
-            active: true,
-            currentWindow: true,
-          });
-          const currentTab = tabs[0];
-
-          if (
-            !currentTab.url.includes("twitter.com") &&
-            !currentTab.url.includes("x.com")
-          ) {
-            status.textContent = "Not on Twitter/X";
-            status.className = "status disabled";
-            toggle.style.opacity = "0.5";
-            toggle.style.pointerEvents = "none";
-            return;
-          }
-
-          // Intentar comunicarse con el content script
-          try {
-            const response = await chrome.tabs.sendMessage(currentTab.id, {
-              action: "getState",
-            });
-            if (response && response.enabled !== undefined) {
-              updateUI(response.enabled);
-            } else {
-              updateUI(enabled);
-            }
-          } catch (error) {
-            // Si no hay content script, usar el valor del storage
-            updateUI(enabled);
-          }
-        } catch (error) {
-          console.error("Error getting initial state:", error);
-          status.textContent = "Error loading state";
-          status.className = "status disabled";
-        }
-      }
-
-      // Función para manejar el toggle
-      async function handleToggle() {
-        try {
-          const tabs = await chrome.tabs.query({
-            active: true,
-            currentWindow: true,
-          });
-          const currentTab = tabs[0];
-
-          // Obtener el estado actual
-          const result = await chrome.storage.sync.get([
-            "goodOldTwitterEnabled",
-          ]);
-          const currentState = result.goodOldTwitterEnabled !== false;
-          const newState = !currentState;
-
-          // Guardar el nuevo estado
-          await chrome.storage.sync.set({ goodOldTwitterEnabled: newState });
-
-          // Intentar comunicarse con el content script
-          try {
-            const response = await chrome.tabs.sendMessage(currentTab.id, {
-              action: "toggle",
-            });
-            if (response && response.enabled !== undefined) {
-              updateUI(response.enabled);
-            } else {
-              updateUI(newState);
-            }
-          } catch (error) {
-            // Si no hay content script, actualizar UI y recargar la página
-            updateUI(newState);
-            await chrome.tabs.reload(currentTab.id);
-          }
-        } catch (error) {
-          console.error("Error toggling state:", error);
-          status.textContent = "Error toggling";
-          status.className = "status disabled";
-        }
-      }
-
-      // Event listeners
-      toggle.addEventListener("click", handleToggle);
-
-      // Inicializar el estado
-      getInitialState();
-    </script>
+    <script src="popup.js"></script>
   </body>
 </html>
