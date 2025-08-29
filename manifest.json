@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Good Old Twitter",
+  "version": "1.0",
+  "description": "Hide images and videos on Twitter/X to show only text content",
+  "permissions": ["activeTab"],
+  "content_scripts": [
+    {
+      "matches": ["*://twitter.com/*", "*://x.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Toggle Twitter media visibility"
+  }
+}

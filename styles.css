@@ -1,0 +1,20 @@
+/* dark mode support */
+@media (prefers-color-scheme: dark) {
+  .good-old-twitter-hidden * .media-placeholder {
+    background-color: #15202b;
+    border-color: #38444d;
+    color: #8899a6;
+  }
+}
+
+.good-old-twitter-hidden video,
+.good-old-twitter-hidden [data-testid="videoPlayer"] {
+  display: none !important;
+}
+
+.good-old-twitter-hidden[data-testid="tweetPhoto"] {
+  height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}

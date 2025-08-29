@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 200px;
+        padding: 16px;
+        margin: 0;
+        font-family: -apple-system, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+          "Helvetica Neue", sans-serif;
+        background: #fff;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 16px;
+      }
+
+      .title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #14171a;
+        margin: 0 0 4px 0;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        color: #657786;
+        margin: 0;
+      }
+
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 16px 0;
+      }
+
+      .toggle-label {
+        font-size: 14px;
+        color: #14171a;
+      }
+
+      .toggle {
+        position: relative;
+        width: 48px;
+        height: 24px;
+        background: #ccd6dd;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .toggle.enabled {
+        background: #1da1f2;
+      }
+
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: transform 0.2s;
+      }
+
+      .toggle.enabled::after {
+        transform: translateX(24px);
+      }
+
+      .status {
+        text-align: center;
+        font-size: 12px;
+        margin-top: 12px;
+      }
+
+      .status.enabled {
+        color: #1da1f2;
+      }
+
+      .status.disabled {
+        color: #657786;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="title">Good Old Twitter</div>
+      <div class="subtitle">Hide images & videos</div>
+    </div>
+
+    <div class="toggle-container">
+      <span class="toggle-label">Hide Media</span>
+      <div class="toggle" id="toggle"></div>
+    </div>
+
+    <div class="status" id="status">Loading...</div>
+
+    <script>
+      const toggle = document.getElementById("toggle");
+      const status = document.getElementById("status");
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(
+          tabs[0].id,
+          { action: "getState" },
+          (response) => {
+            if (response) {
+              updateUI(response.enabled);
+            } else {
+              chrome.storage.sync.get(["goodOldTwitterEnabled"], (result) => {
+                updateUI(result.goodOldTwitterEnabled !== false);
+              });
+            }
+          }
+        );
+      });
+
+      toggle.addEventListener("click", () => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          chrome.tabs.sendMessage(
+            tabs[0].id,
+            { action: "toggle" },
+            (response) => {
+              if (response) {
+                updateUI(response.enabled);
+              }
+            }
+          );
+        });
+      });
+
+      function updateUI(enabled) {
+        if (enabled) {
+          toggle.classList.add("enabled");
+          status.textContent = "Media hidden";
+          status.className = "status enabled";
+        } else {
+          toggle.classList.remove("enabled");
+          status.textContent = "Media visible";
+          status.className = "status disabled";
+        }
+      }
+    </script>
+  </body>
+</html>
